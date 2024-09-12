@@ -1,5 +1,5 @@
 import { scrapeJobListings } from "./scrapers/devbgScraper.js";
-import { receiveMessages } from "./scrapers/consumer.js";
+import { receiveMessages } from "./consumers/consumer.js";
 
 async function main() {
     receiveMessages();
