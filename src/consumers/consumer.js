@@ -23,12 +23,11 @@ const queueUrl = 'https://sqs.eu-north-1.amazonaws.com/626635404006/Test2';
 
 const receiveParams = {
     QueueUrl: queueUrl,
-    MaxNumberOfMessages: 10, // Adjust the number of messages to process at once
+    MaxNumberOfMessages: 10,
     VisibilityTimeout: 20,
-    WaitTimeSeconds: 5, // Long polling
+    WaitTimeSeconds: 5,
 };
 
-// Function to receive and process messages
 export function receiveMessages() {
     sqs.receiveMessage(receiveParams, (err, data) => {
         if (err) {
@@ -59,8 +58,6 @@ export function receiveMessages() {
                         console.log('Data successfully inserted:', results);
                     });
 
-
-                // After processing, delete the message from the queue
                 const deleteParams = {
                     QueueUrl: queueUrl,
                     ReceiptHandle: message.ReceiptHandle
@@ -79,5 +76,4 @@ export function receiveMessages() {
 }
 connection.end();
 
-// Poll for new messages every 5 seconds
 setInterval(receiveMessages, 5000);
