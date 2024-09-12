@@ -2,12 +2,20 @@ import puppeteer from 'puppeteer';
 import mysql from 'mysql2';
 
 
+// const connection = mysql.createConnection({
+//     host: 'localhost',
+//     user: 'root',
+//     password: 'my-secret-pw',
+//     database: 'job_mapper',
+//     port: 33020
+// });
+
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'my-secret-pw',
-    database: 'job_mapper',
-    port: 3307
+    host: 'database-1.ctmeg0eqc4g3.eu-north-1.rds.amazonaws.com',
+    user: 'admin',
+    password: 'sakatards',
+    database: 'innodb',
+    port: 3306
 });
 
 connection.connect((err) => {
@@ -48,33 +56,36 @@ async function scrapeJobListings() {
         const jobPage = await browser.newPage();
         await jobPage.goto(link);
 
+        // await jobPage.waitForSelector('.job_description');
+
         const job = await jobPage.evaluate(() => {
+
             const jobData = {
-                title: document.querySelector('.job-title').innerText,
-                time: document.querySelector('time').innerText,
-                location: document.querySelector('.badge').innerText,
-                description: document.querySelector('.job_description').innerText,
+                title: document.querySelector('.job-title').innerText.trim(),
+                // time: document.querySelector('time').innerText,
+                // location: document.querySelector('.badge').innerText.trim(),
+                description: document.querySelector('.job_description')?.innerText.trim() ? document.querySelector('.job_description').innerText.trim() : 'hardcoded description',
                 icons: Array.from(document.querySelectorAll('.attachment-medium.size-medium'))
-                    .map(img => img.title),
+                    .map(img => img.title.trim()),
                 categories: Array.from(document.querySelectorAll('.pill'))
-                    .map(a => a.innerText),
+                    .map(a => a.innerText.trim()),
                 company: {
-                    description: document.querySelector('.box-company p').innerText,
-                    profile: document.querySelector('.box-company a').href,
-                    logo: document.querySelector('.company-logo').getAttribute('src')
+                    // description: document.querySelector('.box-company p').innerText.trim(),
+                    profile: document.querySelector('.box-company a').href.trim(),
+                    logo: document.querySelector('.company-logo').getAttribute('src').trim()
                 },
             };
             return jobData;
         });
-
-        const query = 'INSERT INTO job_listings (job_title, time_posted, job_location, job_description, company_description, company_profile_url, company_logo_url, icon_titles, category_names) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        // time_posted, 
+        const query = 'INSERT INTO job_listings5 (job_title, job_description, company_profile_url, company_logo_url, icon_titles, category_names) VALUES (?, ?, ?, ?, ?, ?)';
 
         connection.query(query, [
             job.title,
-            job.time,
-            job.location,
+            // job.time,
+            // job.location,
             job.description,
-            job.company.description,
+            // job.company.description,
             job.company.profile,
             job.company.logo,
             job.icons.join(','),
@@ -92,6 +103,7 @@ async function scrapeJobListings() {
 
     await browser.close();
     connection.end();
+
 }
 
 export { scrapeJobListings };
